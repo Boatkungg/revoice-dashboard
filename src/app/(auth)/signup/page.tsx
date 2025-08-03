@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Eye, EyeClosed } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -25,6 +27,8 @@ export default function SignUpPage() {
     const [passvisibility, setPassVisibility] = useState(false);
     const [confirmPassvisibility, setConfirmPassVisibility] = useState(false);
 
+    const router = useRouter();
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -35,8 +39,23 @@ export default function SignUpPage() {
         }
     });
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         console.log(values);
+        await authClient.signUp.email({
+            name: values.username,
+            email: values.email,
+            password: values.password,
+        }, {
+            onSuccess: () => {
+                router.push("/signin");
+            },
+            onError: (error) => {
+                // throw new Error(error.error.message);
+                form.setError("email", {
+                    message: error.error.message,
+                });
+            }
+        })
     }
 
     return (

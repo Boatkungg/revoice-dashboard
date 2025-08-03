@@ -1,12 +1,17 @@
+"use client";
+
 import Image from "next/image";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "./ui/sidebar";
 import Link from "next/link";
 import { ChevronUp, Gamepad2, Home, User } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "./ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "./ui/dropdown-menu";
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { authClient } from "@/lib/auth-client";
+import { redirect } from "next/navigation";
+import { useMemo } from "react";
 
-const menu_items = [
+const base_menu_items = [
     {
         name: "Home",
         href: "/dashboard",
@@ -25,6 +30,50 @@ const menu_items = [
 ]
 
 export default function DashboardSidebar() {
+    const { data: session, isPending } = authClient.useSession();
+
+    // if session.role is admin add Main Games to the menu
+    const menu_items = useMemo(() => {
+        const items = [...base_menu_items];
+        if (session?.user?.role === "admin") {
+            items.push({
+                name: "Main Games",
+                href: "/dashboard/main-games",
+                icon: Gamepad2
+            });
+        }
+        return items;
+    }, [session]);
+
+    async function handleSignOut() {
+        // Implement sign out logic here
+        console.log("Sign out clicked");
+        await authClient.signOut({}, {
+            onSuccess: () => {
+                redirect("/signin");
+            }
+        });
+    }
+
+    const getInitials = (name: string) => {
+        return name
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase())
+            .join('')
+            .slice(0, 2);
+    };
+
+    const getUserDisplayName = () => {
+        if (isPending) return "Loading...";
+        if (!session?.user) return "Guest";
+        return session.user.name || session.user.email || "Unknown User";
+    };
+
+    const getUserInitials = () => {
+        if (!session?.user?.name) return "GU"; // Guest User
+        return getInitials(session.user.name);
+    };
+
     return (
         <Sidebar collapsible="icon">
             <SidebarHeader>
@@ -61,17 +110,35 @@ export default function DashboardSidebar() {
                     <SidebarMenuItem>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <SidebarMenuButton size="lg">
+                                <SidebarMenuButton size="lg" disabled={isPending}>
                                     <Avatar>
-                                        <AvatarImage src={"https://github.com/BoatKunGG.png"} alt="" draggable={false} />
-                                        <AvatarFallback>UN</AvatarFallback>
+                                        <AvatarImage 
+                                            src={session?.user?.image || `https://github.com/${session?.user?.name || 'user'}.png`} 
+                                            alt={session?.user?.name || "User"} 
+                                            draggable={false} 
+                                        />
+                                        <AvatarFallback>
+                                            {isPending ? "..." : getUserInitials()}
+                                        </AvatarFallback>
                                     </Avatar>
-                                    <span className="ml-1">BoatKunGG</span>
+                                    <span className="ml-1">
+                                        {getUserDisplayName()}
+                                    </span>
                                     <ChevronUp className="ml-auto" />
                                 </SidebarMenuButton>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent side="top" className="w-56">
-                                <DropdownMenuItem>
+                                <Link href={"/dashboard/profile"}>
+                                    <DropdownMenuItem
+                                        disabled={!session?.user}
+                                    >
+                                        <span>Profile</span>
+                                    </DropdownMenuItem>
+                                </Link>
+                                <DropdownMenuSeparator/>
+                                <DropdownMenuItem 
+                                    onClick={handleSignOut}
+                                >
                                     <span>Sign out</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>

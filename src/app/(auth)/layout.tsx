@@ -7,7 +7,7 @@ export default function AuthLayout({
 }>) {
   return (
     <main className="h-screen w-screen relative">
-      <Image src={"/background.jpg"} layout="fill" objectFit="cover" alt="" draggable={false} className="-z-50 brightness-75" />
+      <Image src={"/background.jpg"} fill alt="" draggable={false} className="-z-50 brightness-75 w-full h-full object-cover" />  
       <div className="h-full w-full flex items-center justify-center">
         {children}
       </div>

@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Eye, EyeClosed } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -18,6 +20,7 @@ const formSchema = z.object({
 
 export default function SignInPage() {
     const [passvisibility, setPassVisibility] = useState(false);
+    const router = useRouter();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -27,8 +30,21 @@ export default function SignInPage() {
         }
     });
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         console.log(values);
+        await authClient.signIn.email({
+            email: values.email,
+            password: values.password
+        }, {
+            onSuccess: () => {
+                router.push("/dashboard");
+            },
+            onError: (error) => {
+                form.setError("password", {
+                    message: error.error.message,
+                });
+            }
+        })
     }
 
     return (
