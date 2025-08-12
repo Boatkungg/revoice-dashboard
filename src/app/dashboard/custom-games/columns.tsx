@@ -11,9 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { $fetch } from "@/lib/fetch";
 import { ColumnDef } from "@tanstack/react-table";
-import { PencilLine, Loader2 } from "lucide-react";
+import { PencilLine, Loader2, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { AccessManagement } from "./access-management";
 
 export type Game = {
     id: string;
@@ -39,6 +40,7 @@ export type GameDetails = {
 
 const ActionsCell = ({ game, onRefetch }: { game: Game, onRefetch: () => void }) => {
     const [detailsOpen, setDetailsOpen] = useState(false);
+    const [accessManagementOpen, setAccessManagementOpen] = useState(false);
     const [gameDetails, setGameDetails] = useState<GameDetails | null>(null);
     const [loading, setLoading] = useState(false);
 
@@ -112,6 +114,10 @@ const ActionsCell = ({ game, onRefetch }: { game: Game, onRefetch: () => void })
                 <DropdownMenuContent side="left" align="end">
                     <DropdownMenuItem onClick={handleViewDetails}>
                         View Details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setAccessManagementOpen(true)}>
+                        <Users className="h-4 w-4 mr-2" />
+                        Manage Access
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="text-red-500" onClick={handleRemoveGame}>
@@ -204,6 +210,14 @@ const ActionsCell = ({ game, onRefetch }: { game: Game, onRefetch: () => void })
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* Access Management Dialog */}
+            <AccessManagement
+                gameId={game.id}
+                gameName={game.name}
+                isOpen={accessManagementOpen}
+                onClose={() => setAccessManagementOpen(false)}
+            />
         </div>
     );
 };

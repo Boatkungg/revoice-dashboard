@@ -22,6 +22,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { User } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export type Recipient = {
     gameUserId: string;
@@ -42,6 +43,7 @@ const ActionsCell = ({
     onRefetch: () => void;
 }) => {
     const [detailsOpen, setDetailsOpen] = useState(false);
+    const router = useRouter();
 
     async function handleRemoveRecipient() {
         // Implement remove recipient logic here
@@ -74,6 +76,9 @@ const ActionsCell = ({
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="left" align="end">
+                    <DropdownMenuItem onClick={() => router.push(`/dashboard/recipients/${recipient.gameUserId}`)}>
+                        View Profile
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setDetailsOpen(true)}>
                         View Details
                     </DropdownMenuItem>
